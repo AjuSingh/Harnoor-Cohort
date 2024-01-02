@@ -42,50 +42,65 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const path = require('path');
 const PORT = 3000;
+const { getTodos,writeFile } = require("./utils/methods");
+
 
 const app = express();
-let TODOS = [];
-let uniqueID = 1;
 
 app.use(bodyParser.json());
 
-app.get("/todos", (req, res) => {
-  res.json({ todos: TODOS });
+app.get("/todos", async (req, res) => {
+  const _path = path.join(__dirname, "todos.json");
+  const todos = await getTodos(_path)
+  res.json({ todos: todos });
 });
 
-app.get("/todos/:id", (req, res) => {
+app.get("/todos/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const todo = TODOS.find((todo) => todo.id === id);
+  const _path = path.join(__dirname, "todos.json");
+  const todos = await getTodos(_path)
+  const todo = todos.find((todo) => todo.id === id);
   if (todo === undefined) res.status(404).send("Not Found");
   else res.status(200).json({ todo });
 });
 
-app.post("/todos", (req, res) => {
+app.post("/todos", async (req, res) => {
   const body = req.body;
-  const id = uniqueID;
-  TODOS.push({ id, ...body });
-  res.status(201).json({ id });
-  uniqueID++;
+  const id = Math.floor(Math.random() * 1000000);
+  const _path = path.join(__dirname, "todos.json");
+  const todos = await getTodos(_path);
+  const newTodo = { id, ...body };
+  todos.push(newTodo);
+  await writeFile(_path,JSON.stringify(todos));
+  res.status(201).json(newTodo);
 });
 
-app.put("/todos/:id", (req, res) => {
+
+app.put("/todos/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   const body = req.body;
-  const todoIndex = TODOS.findIndex((todo) => todo.id === id);
+  const _path = path.join(__dirname, "todos.json");
+  const todos = await getTodos(_path);
+  const todoIndex = todos.findIndex((todo) => todo.id === id);
   if (todoIndex === -1) res.status(404).send("Not Found");
   else {
-    TODOS[todoIndex] = { ...TODOS[todoIndex], ...body };
-    res.status(200).json({ todo: TODOS[todoIndex] });
+    todos[todoIndex] = { ...todos[todoIndex], ...body };
+    await writeFile(_path,JSON.stringify(todos));
+    res.status(200).json({ todo: todos[todoIndex] });
   }
 });
 
-app.delete("/todos/:id", (req, res) => {
+app.delete("/todos/:id", async(req, res) => {
   const id = parseInt(req.params.id);
-  const todoIndex = TODOS.findIndex((todo) => todo.id === id);
+  const _path = path.join(__dirname, "todos.json");
+  let todos = await getTodos(_path);
+  const todoIndex = todos.findIndex((todo) => todo.id === id);
   if (todoIndex === -1) res.status(404).send("Not Found");
   else {
-    TODOS = TODOS.filter(todo => todo.id !== id);
+    todos = todos.filter(todo => todo.id !== id);
+    await writeFile(_path,JSON.stringify(todos));
     res.status(200).send("Deleted successfully..")
   }
 });
@@ -98,5 +113,6 @@ app.all("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Listening on ${PORT}..`);
 });
+
 
 module.exports = app;
