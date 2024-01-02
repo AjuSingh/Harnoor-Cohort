@@ -29,6 +29,7 @@ function writeFile(path, data) {
     });
 }
 
+//to fetch all todos from the file
 async function getTodos(_path){
     const data = await readFile(_path);
     const todos = JSON.parse(data);
