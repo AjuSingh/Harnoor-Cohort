@@ -44,7 +44,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require('path');
 const PORT = 3000;
-const { getTodos,writeFile } = require("./utils/methods");
+const { getTodos, writeFile } = require("./utils/methods");
 
 
 const app = express();
@@ -73,7 +73,7 @@ app.post("/todos", async (req, res) => {
   const todos = await getTodos(_path);
   const newTodo = { id, ...body };
   todos.push(newTodo);
-  await writeFile(_path,JSON.stringify(todos));
+  await writeFile(_path, JSON.stringify(todos));
   res.status(201).json(newTodo);
 });
 
@@ -87,12 +87,12 @@ app.put("/todos/:id", async (req, res) => {
   if (todoIndex === -1) res.status(404).send("Not Found");
   else {
     todos[todoIndex] = { ...todos[todoIndex], ...body };
-    await writeFile(_path,JSON.stringify(todos));
+    await writeFile(_path, JSON.stringify(todos));
     res.status(200).json({ todo: todos[todoIndex] });
   }
 });
 
-app.delete("/todos/:id", async(req, res) => {
+app.delete("/todos/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   const _path = path.join(__dirname, "todos.json");
   let todos = await getTodos(_path);
@@ -100,7 +100,7 @@ app.delete("/todos/:id", async(req, res) => {
   if (todoIndex === -1) res.status(404).send("Not Found");
   else {
     todos = todos.filter(todo => todo.id !== id);
-    await writeFile(_path,JSON.stringify(todos));
+    await writeFile(_path, JSON.stringify(todos));
     res.status(200).send("Deleted successfully..")
   }
 });
